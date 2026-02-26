@@ -1,0 +1,108 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-dark"><i class="fas fa-bell me-2"></i> Panel de Eventos y Alertas</h2>
+</div>
+
+<div class="row g-4">
+    <!-- Próximos Eventos (7 días) -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-warning text-dark fw-bold">
+                <i class="fas fa-birthday-cake me-2"></i> Próximos Cumpleaños (7 días)
+            </div>
+            <div class="card-body">
+                {% if proximos_cumple %}
+                <ul class="list-group list-group-flush">
+                    {% for emp in proximos_cumple %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold">{{ emp.Nombre_Completo }}</div>
+                            <small class="text-muted">{{ emp.perfil_rel.area_rel.Area if emp.perfil_rel and emp.perfil_rel.area_rel else 'N/A' }} / {{ emp.perfil_rel.area_rel.departamento_rel.Departamento if emp.perfil_rel and emp.perfil_rel.area_rel and emp.perfil_rel.area_rel.departamento_rel else 'N/A' }}</small>
+                        </div>
+                        <span class="badge bg-warning text-dark rounded-pill">{{ emp.Fecha_Nacimiento.strftime('%d de %B') }} (Cumple {{ emp.edad_a_cumplir }})</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-center text-muted mt-3">No hay cumpleaños en los próximos 7 días.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-success text-white fw-bold">
+                <i class="fas fa-medal me-2"></i> Próximos Aniversarios (7 días)
+            </div>
+            <div class="card-body">
+                {% if proximos_aniv %}
+                <ul class="list-group list-group-flush">
+                    {% for emp in proximos_aniv %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold">{{ emp.Nombre_Completo }}</div>
+                            <small class="text-muted">{{ emp.perfil_rel.area_rel.Area if emp.perfil_rel and emp.perfil_rel.area_rel else 'N/A' }}</small>
+                        </div>
+                        <span class="badge bg-success rounded-pill">{{ emp.Fecha_Ingreso.strftime('%d de %B') }} (Cumple {{ emp.anos_de_servicio }} años)</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-center text-muted mt-3">No hay aniversarios en los próximos 7 días.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Eventos del Mes -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light fw-bold">
+                <i class="far fa-calendar-alt me-2"></i> Cumpleaños del Mes
+            </div>
+            <div class="card-body">
+                {% if cumple_mes %}
+                <ul class="list-group list-group-flush">
+                    {% for emp in cumple_mes %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold">{{ emp.Nombre_Completo }}</div>
+                            <small class="text-muted">{{ emp.perfil_rel.area_rel.Area if emp.perfil_rel and emp.perfil_rel.area_rel else 'N/A' }}</small>
+                        </div>
+                        <span class="badge bg-light text-dark border rounded-pill">{{ emp.Fecha_Nacimiento.strftime('%d de %B') }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-center text-muted mt-3">No hay cumpleaños este mes.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light fw-bold">
+                <i class="far fa-calendar-check me-2"></i> Aniversarios del Mes
+            </div>
+            <div class="card-body">
+                {% if aniv_mes %}
+                <ul class="list-group list-group-flush">
+                    {% for emp in aniv_mes %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold">{{ emp.Nombre_Completo }}</div>
+                            <small class="text-muted">{{ emp.perfil_rel.area_rel.Area if emp.perfil_rel and emp.perfil_rel.area_rel else 'N/A' }}</small>
+                        </div>
+                        <span class="badge bg-light text-dark border rounded-pill">{{ emp.Fecha_Ingreso.strftime('%d de %B') }} ({{ emp.anos_de_servicio }} años)</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-center text-muted mt-3">No hay aniversarios este mes.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

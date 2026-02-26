@@ -1,0 +1,119 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark"><i class="fas fa-calendar-alt me-2"></i>Calendario Corporativo</h2>
+        <div class="badge bg-light text-dark p-2 border">
+            <i class="fas fa-info-circle me-1"></i> Vista de Solo Lectura
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="mb-3 text-center">
+                        <span class="badge rounded-pill bg-warning text-dark me-2"><i class="fas fa-birthday-cake"></i> Cumpleaños</span>
+                        <span class="badge rounded-pill bg-success"><i class="fas fa-medal"></i> Aniversarios Laborales</span>
+                    </div>
+                    <div id="calendar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Especial: Información de Cumpleaños / Empleado -->
+<div class="modal fade" id="infoEmpleadoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning bg-gradient text-dark border-0">
+                <h5 class="modal-title fw-bold"><i class="fas fa-birthday-cake me-2"></i> ¡Cumpleaños!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center pt-4">
+                <div class="mb-3">
+                    <span class="fa-stack fa-3x">
+                        <i class="fas fa-circle fa-stack-2x text-warning bg-opacity-25"></i>
+                        <i class="fas fa-user fa-stack-1x text-dark"></i>
+                    </span>
+                </div>
+                <h4 id="infoNombre" class="fw-bold text-dark mb-1"></h4>
+                <p id="infoCargo" class="text-primary fw-bold mb-0"></p>
+                <p class="text-muted small mb-1"><i class="fas fa-building me-1"></i> <span id="infoArea"></span></p>
+                <p class="text-muted small mb-4"><i class="fas fa-sitemap me-1"></i> <span id="infoDepto"></span></p>
+                
+                <div class="d-grid gap-2 col-8 mx-auto">
+                    <a id="btnEmail" href="#" class="btn btn-outline-dark btn-sm">
+                        <i class="fas fa-envelope me-2"></i> Enviar Felicitación
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts de FullCalendar -->
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      locale: 'es', // ¡Calendario en español!
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+      },
+      navLinks: false,
+      selectable: false,
+      selectMirror: false,
+      dayMaxEvents: true,
+      editable: false,
+      events: {{ eventos|tojson|safe }},
+      
+      // Al hacer clic en un evento (Ver detalles)
+      eventClick: function(info) {
+        var props = info.event.extendedProps;
+
+        // CASO 1: Es un Cumpleaños de Empleado
+        if (props.tipo === 'cumpleanos' || props.tipo === 'aniversario') {
+            var modalCumple = new bootstrap.Modal(document.getElementById('infoEmpleadoModal'));
+            
+            document.getElementById('infoNombre').innerText = props.nombre_completo;
+            
+            if (props.tipo === 'cumpleanos') {
+                document.getElementById('infoCargo').innerText = props.cargo;
+                document.getElementById('infoArea').innerText = props.area;
+                document.getElementById('infoDepto').innerText = props.departamento;
+                document.getElementById('btnEmail').href = "mailto:" + props.email + "?subject=¡Feliz Cumpleaños!";
+                document.getElementById('btnEmail').style.display = 'inline-block';
+            } else {
+                // Caso Aniversario
+                document.getElementById('infoCargo').innerText = props.anos + " Años de Servicio";
+                document.getElementById('infoArea').innerText = "Ingreso: " + props.fecha_ingreso;
+                document.getElementById('infoDepto').innerText = "";
+                document.getElementById('btnEmail').style.display = 'none';
+            }
+
+            modalCumple.show();
+        }
+      },
+
+      eventDidMount: function(info) {
+        // Añadir un tooltip para ver el título completo
+        var tooltip = new bootstrap.Tooltip(info.el, {
+          title: info.event.title,
+          placement: 'top',
+          trigger: 'hover',
+          container: 'body'
+        });
+      }
+    });
+
+    calendar.render();
+  });
+</script>
+{% endblock %}

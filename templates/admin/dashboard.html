@@ -1,0 +1,552 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2 text-primary fw-bold"><i class="fas fa-tachometer-alt me-2"></i>Panel Administrativo</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#crearAreaModal">
+                    <i class="fas fa-building me-1"></i> Área
+                </button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#crearCargoModal">
+                    <i class="fas fa-briefcase me-1"></i> Cargo
+                </button>
+            </div>
+            <button type="button" class="btn btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#crearModal">
+                <i class="fas fa-user-plus me-2"></i>Nuevo Empleado
+            </button>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Resumen -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary bg-gradient mb-3 shadow border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-1">Total Empleados</h6>
+                            <h2 class="card-text fw-bold">{{ total }}</h2>
+                        </div>
+                        <i class="fas fa-users fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success bg-gradient mb-3 shadow border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-1">Activos</h6>
+                            <h2 class="card-text fw-bold">{{ activos }}</h2>
+                        </div>
+                        <i class="fas fa-user-check fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-info bg-gradient mb-3 shadow border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-1">Cargos / Perfiles</h6>
+                            <h2 class="card-text fw-bold">{{ perfiles|length }}</h2>
+                        </div>
+                        <i class="fas fa-briefcase fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Gráficos y Analítica -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow border-0 h-100">
+                <div class="card-header bg-white fw-bold text-secondary"><i class="fas fa-chart-pie me-2"></i>Empleados por Departamento</div>
+                <div class="card-body">
+                    <canvas id="deptChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow border-0 h-100">
+                <div class="card-header bg-white fw-bold text-secondary"><i class="fas fa-chart-line me-2"></i>Evolución Costo Nómina</div>
+                <div class="card-body">
+                    <canvas id="nominaChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Gestión de Empleados -->
+    <div class="card shadow border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold text-secondary"><i class="fas fa-list me-2"></i>Directorio de Personal</h5>
+            <div class="d-flex">
+                <a href="{{ url_for('admin.generar_reporte_activos') }}" target="_blank" class="btn btn-outline-danger me-2">
+                    <i class="fas fa-file-pdf me-1"></i> PDF
+                </a>
+                <button class="btn btn-outline-success me-2" onclick="exportTableToCSV('empleados.csv')">
+                    <i class="fas fa-file-csv me-1"></i> Exportar
+                </button>
+                <div class="input-group" style="width: 250px;">
+                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" id="buscador" class="form-control border-start-0 bg-light" placeholder="Buscar...">
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" id="tablaEmpleados">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Cédula</th>
+                            <th>Nombre</th>
+                            <th>Cargo</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for emp in empleados %}
+                        <tr>
+                            <td class="fw-bold">{{ emp.ID_Cedula }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if emp.Imagen_Perfil %}
+                                        <img src="{{ url_for('static', filename='uploads/' + emp.Imagen_Perfil) }}" class="rounded-circle me-2" width="30" height="30" style="object-fit: cover;">
+                                    {% else %}
+                                        <div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center me-2" style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                            {{ emp.Nombre_Completo[:1] }}
+                                        </div>
+                                    {% endif %}
+                                    {{ emp.Nombre_Completo }}
+                                </div>
+                            </td>
+                            <td><small class="text-muted">{{ emp.perfil_rel.Perfil_Ocupacional if emp.perfil_rel else 'Sin Cargo' }}</small></td>
+                            <td><span class="badge bg-info text-dark">{{ emp.rol_rel.nombre_rol if emp.rol_rel else 'Sin Rol' }}</span></td>
+                            <td><span class="badge bg-{{ 'success' if emp.Estado_Laboral == 'Activo' else 'secondary' }}">{{ emp.Estado_Laboral }}</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" title="Editar" 
+                                    onclick="abrirModalEditar('{{ emp.ID_Cedula }}', '{{ emp.Nombre_Completo }}', '{{ emp.Correo_Electronico }}', '{{ emp.id_rol }}', '{{ emp.Estado_Laboral }}', '{{ emp.ID_Perfil_Ocupacional }}', '{{ emp.Salario_Base }}', '{{ emp.EPS_Actual }}', '{{ emp.Fondo_Actual }}', '{{ emp.perfil_rel.Area if emp.perfil_rel else "" }}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6" class="text-center">No hay empleados registrados.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CREAR EMPLEADO -->
+<div class="modal fade" id="crearModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Nuevo Empleado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('admin.crear_empleado') }}" method="POST">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Cédula *</label>
+                            <input type="text" name="cedula" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tipo Documento</label>
+                            <select name="tipo_doc" class="form-select">
+                                {% for td in tipos_doc %}
+                                <option value="{{ td.id_tipodocuemnto }}">{{ td.tipo_documento }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Nombre Completo *</label>
+                            <input type="text" name="nombre" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Correo Electrónico</label>
+                            <input type="email" name="email" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Contraseña Inicial *</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Rol de Sistema</label>
+                            <select name="rol" class="form-select">
+                                {% for r in roles %}
+                                <option value="{{ r.id_rol }}">{{ r.nombre_rol }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Área (Filtro)</label>
+                            <select id="crear_area" class="form-select" onchange="filtrarCargos('crear_area', 'crear_perfil')">
+                                <option value="">Seleccione Área...</option>
+                                {% for a in areas %}
+                                <option value="{{ a.Area }}">{{ a.Area }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Cargo / Perfil *</label>
+                            <select name="perfil" id="crear_perfil" class="form-select" required>
+                                <option value="">Seleccione Cargo...</option>
+                                {% for p in perfiles %}
+                                <option value="{{ p.ID_Perfil_Ocupacional }}" data-area="{{ p.Area }}">{{ p.Perfil_Ocupacional }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha Ingreso *</label>
+                            <input type="date" name="fecha_ingreso" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Salario Base</label>
+                            <input type="number" name="salario" class="form-control" step="0.01">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">EPS</label>
+                            <select name="eps" class="form-select">
+                                {% for eps in lista_eps %}
+                                <option value="{{ eps.EPS }}">{{ eps.EPS }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fondo Pensiones</label>
+                            <select name="fondo" class="form-select">
+                                {% for f in lista_fondos %}
+                                <option value="{{ f.Fondo_Pensiones }}">{{ f.Fondo_Pensiones }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Guardar Empleado</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EDITAR EMPLEADO -->
+<div class="modal fade" id="editarModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-user-edit me-2"></i>Editar Empleado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('admin.editar_empleado') }}" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" name="cedula_editar" id="edit_cedula">
+                    
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Nombre Completo</label>
+                            <input type="text" name="nombre" id="edit_nombre" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Correo Electrónico</label>
+                            <input type="email" name="email" id="edit_email" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Estado Laboral</label>
+                            <select name="estado" id="edit_estado" class="form-select">
+                                <option value="Activo">Activo</option>
+                                <option value="Inactivo">Inactivo</option>
+                                <option value="Vacaciones">Vacaciones</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Rol de Sistema</label>
+                            <select name="rol" id="edit_rol" class="form-select">
+                                {% for r in roles %}
+                                <option value="{{ r.id_rol }}">{{ r.nombre_rol }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Área (Filtro)</label>
+                            <select id="edit_area" class="form-select" onchange="filtrarCargos('edit_area', 'edit_perfil')">
+                                <option value="">Seleccione Área...</option>
+                                {% for a in areas %}
+                                <option value="{{ a.Area }}">{{ a.Area }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Cargo / Perfil</label>
+                            <select name="perfil" id="edit_perfil" class="form-select">
+                                <option value="">Seleccione Cargo...</option>
+                                {% for p in perfiles %}
+                                <option value="{{ p.ID_Perfil_Ocupacional }}" data-area="{{ p.Area }}">{{ p.Perfil_Ocupacional }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">EPS</label>
+                            <select name="eps" id="edit_eps" class="form-select">
+                                {% for eps in lista_eps %}
+                                <option value="{{ eps.EPS }}">{{ eps.EPS }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fondo Pensiones</label>
+                            <select name="fondo" id="edit_fondo" class="form-select">
+                                {% for f in lista_fondos %}
+                                <option value="{{ f.Fondo_Pensiones }}">{{ f.Fondo_Pensiones }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Salario Base</label>
+                            <input type="number" name="salario" id="edit_salario" class="form-control" step="0.01">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-danger">Cambiar Contraseña (Opcional)</label>
+                            <input type="password" name="password_nueva" class="form-control" placeholder="Dejar en blanco para no cambiar">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CREAR ÁREA -->
+<div class="modal fade" id="crearAreaModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title"><i class="fas fa-building me-2"></i>Nueva Área</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('admin.crear_area') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre del Área *</label>
+                        <input type="text" name="nombre_area" class="form-control" required placeholder="Ej: Desarrollo, Contabilidad">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Departamento Padre *</label>
+                        <select name="departamento" class="form-select" required>
+                            {% for d in departamentos %}
+                            <option value="{{ d.Departamento }}">{{ d.Departamento }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Personal Presupuestado</label>
+                        <input type="number" name="presupuesto" class="form-control" value="0">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Guardar Área</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CREAR CARGO -->
+<div class="modal fade" id="crearCargoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title"><i class="fas fa-briefcase me-2"></i>Nuevo Cargo / Perfil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('admin.crear_cargo') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Código del Cargo (ID) *</label>
+                        <input type="text" name="id_cargo" class="form-control" required placeholder="Ej: DEV_JR, CONT_GEN">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nombre del Cargo *</label>
+                        <input type="text" name="nombre_cargo" class="form-control" required placeholder="Ej: Desarrollador Junior">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Área Perteneciente *</label>
+                        <select name="area" class="form-select" required>
+                            {% for a in areas %}
+                            <option value="{{ a.Area }}">{{ a.Area }} ({{ a.Departamento }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Personal Presupuestado</label>
+                        <input type="number" name="presupuesto" class="form-control" value="1">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Guardar Cargo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Buscador en tiempo real
+    document.getElementById('buscador').addEventListener('keyup', function() {
+        let searchText = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#tablaEmpleados tbody tr');
+        
+        rows.forEach(row => {
+            let text = row.innerText.toLowerCase();
+            row.style.display = text.includes(searchText) ? '' : 'none';
+        });
+    });
+
+    // Función para abrir modal de edición y cargar datos
+    function abrirModalEditar(cedula, nombre, email, rol, estado, perfil, salario, eps, fondo, area) {
+        document.getElementById('edit_cedula').value = cedula;
+        document.getElementById('edit_nombre').value = nombre;
+        document.getElementById('edit_email').value = (email === 'None') ? '' : email;
+        document.getElementById('edit_rol').value = rol;
+        document.getElementById('edit_estado').value = estado;
+        document.getElementById('edit_perfil').value = (perfil === 'None') ? '' : perfil;
+        document.getElementById('edit_salario').value = (salario === 'None') ? 0 : salario;
+        document.getElementById('edit_eps').value = (eps === 'None') ? '' : eps;
+        document.getElementById('edit_fondo').value = (fondo === 'None') ? '' : fondo;
+        
+        // Lógica de filtrado para edición
+        if (area && area !== 'None') {
+            document.getElementById('edit_area').value = area;
+            filtrarCargos('edit_area', 'edit_perfil');
+            document.getElementById('edit_perfil').value = (perfil === 'None') ? '' : perfil;
+        }
+        
+        var modal = new bootstrap.Modal(document.getElementById('editarModal'));
+        modal.show();
+    }
+
+    // Función para filtrar cargos por área
+    function filtrarCargos(idAreaSelect, idCargoSelect) {
+        const areaSelect = document.getElementById(idAreaSelect);
+        const cargoSelect = document.getElementById(idCargoSelect);
+        const selectedArea = areaSelect.value;
+        
+        // Iterar opciones y mostrar/ocultar
+        Array.from(cargoSelect.options).forEach(option => {
+            if (option.value === "") return; // Ignorar placeholder
+            
+            const areaCargo = option.getAttribute('data-area');
+            if (selectedArea === "" || areaCargo === selectedArea) {
+                option.hidden = false;
+            } else {
+                option.hidden = true;
+            }
+        });
+        
+        // Si el cargo seleccionado actualmente queda oculto, resetear selección
+        const currentSelected = cargoSelect.options[cargoSelect.selectedIndex];
+        if (currentSelected && currentSelected.hidden) {
+            cargoSelect.value = "";
+        }
+    }
+
+    // Función para exportar tabla a CSV
+    function exportTableToCSV(filename) {
+        var csv = [];
+        var rows = document.querySelectorAll("#tablaEmpleados tr");
+        
+        for (var i = 0; i < rows.length; i++) {
+            var row = [], cols = rows[i].querySelectorAll("td, th");
+            
+            for (var j = 0; j < cols.length - 1; j++) { // Excluir última columna (Acciones)
+                // Limpiar texto de saltos de línea y espacios extra
+                var data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, "").trim();
+                row.push('"' + data + '"');
+            }
+            csv.push(row.join(","));
+        }
+
+        var csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
+        var downloadLink = document.createElement("a");
+        downloadLink.download = filename;
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+        downloadLink.style.display = "none";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+    }
+
+    // Cargar Gráficos
+    document.addEventListener("DOMContentLoaded", function() {
+        fetch('/api/admin/stats')
+            .then(response => response.json())
+            .then(data => {
+                // Gráfico de Departamentos (Pie)
+                const ctxDept = document.getElementById('deptChart').getContext('2d');
+                new Chart(ctxDept, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.dept_labels,
+                        datasets: [{
+                            data: data.dept_data,
+                            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+
+                // Gráfico de Nómina (Barra)
+                const ctxNomina = document.getElementById('nominaChart').getContext('2d');
+                new Chart(ctxNomina, {
+                    type: 'bar',
+                    data: {
+                        labels: data.nomina_labels,
+                        datasets: [{
+                            label: 'Total Devengado ($)',
+                            data: data.nomina_data,
+                            backgroundColor: '#4e73df',
+                            borderRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true }
+                        },
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            });
+    });
+</script>
+{% endblock %}

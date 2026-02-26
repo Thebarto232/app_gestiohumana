@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-user-edit me-2"></i>Actualizar Información Personal</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('main.perfil') }}" method="POST">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Cédula (No editable)</label>
+                            <input type="text" class="form-control" value="{{ empleado.ID_Cedula }}" disabled>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre Completo (No editable)</label>
+                            <input type="text" class="form-control" value="{{ empleado.Nombre_Completo }}" disabled>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 mt-3">
+                        <label class="form-label fw-bold text-primary">Fecha de Nacimiento</label>
+                        <input type="date" name="fecha_nacimiento" class="form-control" value="{{ empleado.Fecha_Nacimiento }}">
+                    </div>
+
+                    <h6 class="text-primary mt-4 mb-3 border-bottom pb-2">Datos de Contacto</h6>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Celular</label>
+                            <input type="text" name="celular" class="form-control" value="{{ empleado.Celular or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono Fijo</label>
+                            <input type="text" name="telefono" class="form-control" value="{{ empleado.Telefono or '' }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Correo Electrónico Personal</label>
+                        <input type="email" name="email" class="form-control" value="{{ empleado.Correo_Electronico or '' }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Contacto de Emergencia (Nombre y Teléfono)</label>
+                        <input type="text" name="contacto_emergencia" class="form-control" value="{{ empleado.Contacto_Emergencia or '' }}">
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-2"></i>Guardar Cambios
+                        </button>
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

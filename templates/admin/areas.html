@@ -1,0 +1,77 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-dark"><i class="fas fa-sitemap me-2"></i> Gestión de Áreas</h2>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#crearAreaModal">
+        <i class="fas fa-plus me-2"></i> Crear Nueva Área
+    </button>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nombre del Área</th>
+                        <th>Departamento</th>
+                        <th class="text-center">Cargos Asociados</th>
+                        <th class="text-center">Presupuestados</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for area in areas %}
+                    <tr>
+                        <td class="fw-bold">{{ area.Area }}</td>
+                        <td>{{ area.Departamento }}</td>
+                        <td class="text-center">{{ area.perfiles|length }}</td>
+                        <td class="text-center">{{ area.Presupuestados }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">No hay áreas registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Crear Área -->
+<div class="modal fade" id="crearAreaModal" tabindex="-1" aria-labelledby="crearAreaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="crearAreaModalLabel">Crear Nueva Área</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('admin.crear_area') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nombre_area" class="form-label">Nombre del Área</label>
+                        <input type="text" class="form-control" id="nombre_area" name="nombre_area" placeholder="Ej: Desarrollo de Software" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="departamento" class="form-label">Departamento</label>
+                        <select class="form-select" id="departamento" name="departamento" required>
+                            <option value="" disabled selected>Seleccione un departamento...</option>
+                            {% for depto in departamentos %}
+                            <option value="{{ depto.Departamento }}">{{ depto.Departamento }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="presupuesto_area" class="form-label">Número de Puestos Presupuestados</label>
+                        <input type="number" class="form-control" id="presupuesto_area" name="presupuesto" value="1" min="0" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Área</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

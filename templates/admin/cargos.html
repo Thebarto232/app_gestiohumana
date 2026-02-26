@@ -1,0 +1,83 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-dark"><i class="fas fa-briefcase me-2"></i> Gestión de Cargos</h2>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#crearCargoModal">
+        <i class="fas fa-plus me-2"></i> Crear Nuevo Cargo
+    </button>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nombre del Cargo</th>
+                        <th>Área</th>
+                        <th>Departamento</th>
+                        <th class="text-center">Empleados Asignados</th>
+                        <th class="text-center">Presupuestados</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cargo, conteo in cargos_data %}
+                    <tr>
+                        <td class="fw-bold">{{ cargo.Perfil_Ocupacional }}</td>
+                        <td>{{ cargo.area_rel.Area if cargo.area_rel else 'N/A' }}</td>
+                        <td>{{ cargo.area_rel.departamento_rel.Departamento if cargo.area_rel and cargo.area_rel.departamento_rel else 'N/A' }}</td>
+                        <td class="text-center">{{ conteo }}</td>
+                        <td class="text-center">{{ cargo.Presupuestados }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No hay cargos registrados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Crear Cargo -->
+<div class="modal fade" id="crearCargoModal" tabindex="-1" aria-labelledby="crearCargoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="crearCargoModalLabel">Crear Nuevo Cargo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('admin.crear_cargo') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="id_cargo" class="form-label">ID del Cargo (Código único)</label>
+                        <input type="text" class="form-control" id="id_cargo" name="id_cargo" placeholder="Ej: DEV_JR" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nombre_cargo" class="form-label">Nombre del Cargo</label>
+                        <input type="text" class="form-control" id="nombre_cargo" name="nombre_cargo" placeholder="Ej: Desarrollador Junior" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="area" class="form-label">Área</label>
+                        <select class="form-select" id="area" name="area" required>
+                            <option value="" disabled selected>Seleccione un área...</option>
+                            {% for area in areas %}
+                            <option value="{{ area.Area }}">{{ area.Area }} ({{ area.departamento_rel.Departamento }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="presupuesto" class="form-label">Número de Puestos Presupuestados</label>
+                        <input type="number" class="form-control" id="presupuesto" name="presupuesto" value="1" min="0" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cargo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
