@@ -1,4 +1,4 @@
-from sqlalchemy import func
+from sqlalchemy import func, case
 
 from .extensions import db
 from .models import (
@@ -81,16 +81,10 @@ def get_superadmin_stats():
     # Usuarios activos vs inactivos
     activos, inactivos = db.session.query(
         func.sum(
-            func.case(
-                (Empleado.Estado_Laboral == "Activo", 1),
-                else_=0,
-            )
+            case((Empleado.Estado_Laboral == "Activo", 1), else_=0)
         ),
         func.sum(
-            func.case(
-                (Empleado.Estado_Laboral != "Activo", 1),
-                else_=0,
-            )
+            case((Empleado.Estado_Laboral != "Activo", 1), else_=0)
         ),
     ).one()
 
