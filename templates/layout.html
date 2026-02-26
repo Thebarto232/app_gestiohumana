@@ -30,35 +30,35 @@
                             <a class="nav-link" href="{{ url_for('superadmin.dashboard') }}"><i class="fas fa-crown me-1"></i> SuperAdmin</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i> Dashboard Admin</a>
+                            <a class="nav-link" href="{{ url_for('rh.dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i> Panel RRHH</a>
                         </li>
-                    {% elif current_user.rol_rel and current_user.rol_rel.nombre_rol in ['ADMIN', 'RRHH'] %}
-                        <!-- MENÚ ADMINISTRADOR / RRHH -->
+                    {% elif current_user.rol_rel and current_user.rol_rel.nombre_rol == 'RRHH' %}
+                        <!-- MENÚ RRHH -->
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i> Dashboard Admin</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('admin.gestionar_cargos') }}"><i class="fas fa-briefcase me-1"></i> Cargos</a>
+                            <a class="nav-link" href="{{ url_for('rh.dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i> Dashboard RRHH</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('admin.gestionar_areas') }}"><i class="fas fa-sitemap me-1"></i> Áreas</a>
+                            <a class="nav-link" href="{{ url_for('rh.gestionar_cargos') }}"><i class="fas fa-briefcase me-1"></i> Cargos</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('admin.gestionar_eventos') }}"><i class="fas fa-bell me-1"></i> Eventos RRHH</a>
+                            <a class="nav-link" href="{{ url_for('rh.gestionar_areas') }}"><i class="fas fa-sitemap me-1"></i> Áreas</a>
                         </li>
-                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('rh.gestionar_eventos') }}"><i class="fas fa-bell me-1"></i> Eventos</a>
+                        </li>
+                    {% elif current_user.rol_rel and current_user.rol_rel.nombre_rol == 'EMPLEADO' %}
                         <!-- MENÚ EMPLEADO -->
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.dashboard') }}"><i class="fas fa-home me-1"></i> Inicio</a>
+                            <a class="nav-link" href="{{ url_for('empleado.dashboard') }}"><i class="fas fa-home me-1"></i> Inicio</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.perfil') }}"><i class="fas fa-user me-1"></i> Mi Perfil</a>
+                            <a class="nav-link" href="{{ url_for('empleado.perfil') }}"><i class="fas fa-user me-1"></i> Mi Perfil</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.nomina') }}"><i class="fas fa-file-invoice-dollar me-1"></i> Nómina</a>
+                            <a class="nav-link" href="{{ url_for('empleado.nomina') }}"><i class="fas fa-file-invoice-dollar me-1"></i> Nómina</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.calendario') }}"><i class="fas fa-calendar-alt me-1"></i> Calendario</a>
+                            <a class="nav-link" href="{{ url_for('empleado.calendario') }}"><i class="fas fa-calendar-alt me-1"></i> Calendario</a>
                         </li>
                     {% endif %}
                 </ul>

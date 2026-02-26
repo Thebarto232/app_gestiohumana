@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import Flask
+from flask import Flask, redirect, url_for
 from dotenv import load_dotenv
 
 try:
@@ -16,7 +16,6 @@ load_dotenv()
 
 def create_app():
     """Application Factory Function"""
-    # Plantillas y estáticos en la raíz del proyecto, no dentro de app/
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     template_dir = os.path.join(root_dir, 'templates')
     static_dir = os.path.join(root_dir, 'static')
@@ -26,7 +25,7 @@ def create_app():
         SECRET_KEY=os.getenv('SECRET_KEY', os.urandom(24)),
         SQLALCHEMY_DATABASE_URI=f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}",
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        UPLOAD_FOLDER=None,  # se define abajo con ruta absoluta
+        UPLOAD_FOLDER=None,
         ALLOWED_EXTENSIONS={'pdf', 'png', 'jpg', 'jpeg'},
         MAIL_SERVER=os.getenv('MAIL_SERVER', 'smtp.googlemail.com'),
         MAIL_PORT=int(os.getenv('MAIL_PORT', 587)),
@@ -36,7 +35,6 @@ def create_app():
         MAIL_DEFAULT_SENDER=('Portal GH', os.getenv('MAIL_USERNAME'))
     )
 
-    # Carpeta de uploads (ruta absoluta) para que subir_foto_perfil guarde en static de la raíz
     upload_path = os.path.join(static_dir, 'uploads')
     if not os.path.exists(upload_path):
         os.makedirs(upload_path, exist_ok=True)
@@ -53,13 +51,18 @@ def create_app():
 
     with app.app_context():
         from .auth import auth_bp
-        from .routes import admin_bp, main_bp
         from .superadmin import superadmin_bp
+        from .rh import rh_bp
+        from .empleado import empleado_bp
 
         app.register_blueprint(auth_bp)
         app.register_blueprint(superadmin_bp)
-        app.register_blueprint(admin_bp, url_prefix="/admin")
-        app.register_blueprint(main_bp)
+        app.register_blueprint(rh_bp)
+        app.register_blueprint(empleado_bp)
+
+        @app.route('/')
+        def index():
+            return redirect(url_for('auth.login'))
 
     return app
 

@@ -1,7 +1,7 @@
 import logging
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required, current_user
 from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
 from datetime import datetime
@@ -19,6 +19,9 @@ def on_load(state):
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect_by_role(current_user)
+
     if request.method == 'POST':
         cedula = request.form.get('cedula')
         password = request.form.get('password')
@@ -30,12 +33,23 @@ def login():
 
         if user and user.Contrasena and check_password_hash(user.Contrasena, password):
             login_user(user)
-            if user.rol_rel and user.rol_rel.nombre_rol in ['ADMIN', 'RRHH']:
-                return redirect(url_for('admin.dashboard'))
-            return redirect(url_for('main.dashboard'))
+            return redirect_by_role(user)
         else:
             flash("Credenciales inválidas", "danger")
     return render_template('login.html')
+
+def redirect_by_role(user):
+    if user.rol_rel:
+        role = user.rol_rel.nombre_rol
+        if role == 'SUPERADMIN':
+            return redirect(url_for('superadmin.dashboard'))
+        elif role == 'RRHH':
+            return redirect(url_for('rh.dashboard'))
+        elif role == 'EMPLEADO':
+            return redirect(url_for('empleado.dashboard'))
+    # Fallback por si el empleado no tiene rol o el rol no es ninguno de los anteriores
+    return redirect(url_for('empleado.dashboard'))
+
 
 @auth_bp.route('/logout')
 @login_required
@@ -58,12 +72,13 @@ def register():
             return redirect(url_for('auth.login'))
 
         hashed_password = generate_password_hash(password)
+        # Por defecto, el auto-registro asigna el rol de Empleado (id=2)
         new_user = Empleado(
             ID_Cedula=cedula,
             Nombre_Completo=nombre,
             Correo_Electronico=email,
             Contrasena=hashed_password,
-            id_rol=2,
+            id_rol=2, # Asumiendo que 2 es el ID para 'EMPLEADO'
             Fecha_Ingreso=datetime.now().date(),
             Fecha_Nacimiento=datetime.strptime(fecha_nac, '%Y-%m-%d').date() if fecha_nac else None
         )

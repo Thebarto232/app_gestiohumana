@@ -87,7 +87,7 @@
         <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h5 class="mb-0 fw-bold text-secondary"><i class="fas fa-list me-2"></i>Directorio de Personal</h5>
             <div class="d-flex">
-                <a href="{{ url_for('admin.generar_reporte_activos') }}" target="_blank" class="btn btn-outline-danger me-2">
+                <a href="{{ url_for('rh.generar_reporte_activos') }}" target="_blank" class="btn btn-outline-danger me-2">
                     <i class="fas fa-file-pdf me-1"></i> PDF
                 </a>
                 <button class="btn btn-outline-success me-2" onclick="exportTableToCSV('empleados.csv')">
@@ -156,7 +156,7 @@
                 <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Nuevo Empleado</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ url_for('admin.crear_empleado') }}" method="POST">
+            <form action="{{ url_for('rh.crear_empleado') }}" method="POST">
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -252,7 +252,7 @@
                 <h5 class="modal-title"><i class="fas fa-user-edit me-2"></i>Editar Empleado</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ url_for('admin.editar_empleado') }}" method="POST">
+            <form action="{{ url_for('rh.editar_empleado') }}" method="POST">
                 <div class="modal-body">
                     <input type="hidden" name="cedula_editar" id="edit_cedula">
                     
@@ -342,7 +342,7 @@
                 <h5 class="modal-title"><i class="fas fa-building me-2"></i>Nueva Área</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ url_for('admin.crear_area') }}" method="POST">
+            <form action="{{ url_for('rh.crear_area') }}" method="POST">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Nombre del Área *</label>
@@ -377,7 +377,7 @@
                 <h5 class="modal-title"><i class="fas fa-briefcase me-2"></i>Nuevo Cargo / Perfil</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ url_for('admin.crear_cargo') }}" method="POST">
+            <form action="{{ url_for('rh.crear_cargo') }}" method="POST">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Código del Cargo (ID) *</label>
@@ -498,7 +498,7 @@
 
     // Cargar Gráficos
     document.addEventListener("DOMContentLoaded", function() {
-        fetch('/api/admin/stats')
+        fetch("/api/rh/stats")
             .then(response => response.json())
             .then(data => {
                 // Gráfico de Departamentos (Pie)
