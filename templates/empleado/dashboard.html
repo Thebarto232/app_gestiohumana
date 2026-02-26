@@ -16,7 +16,7 @@
                     <p><strong><i class="fas fa-hospital me-2"></i>EPS:</strong> {{ empleado.EPS_Actual }}</p>
                     <p><strong><i class="fas fa-piggy-bank me-2"></i>Fondo:</strong> {{ empleado.Fondo_Actual }}</p>
                 </div>
-                <form action="{{ url_for('main.subir_foto_perfil') }}" method="POST" enctype="multipart/form-data" class="mt-3">
+                <form action="{{ url_for('empleado.subir_foto_perfil') }}" method="POST" enctype="multipart/form-data" class="mt-3">
                     <div class="input-group input-group-sm">
                         <input type="file" name="foto" class="form-control" accept="image/*" required>
                         <button class="btn btn-primary" type="submit" title="Actualizar Foto">
@@ -25,7 +25,7 @@
                     </div>
                 </form>
                 <div class="d-grid gap-2 mt-3">
-                    <a href="{{ url_for('main.perfil') }}" class="btn btn-outline-primary">Ver Perfil Completo</a>
+                    <a href="{{ url_for('empleado.perfil') }}" class="btn btn-outline-primary">Ver Perfil Completo</a>
                 </div>
             </div>
         </div>

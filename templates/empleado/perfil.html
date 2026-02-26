@@ -7,7 +7,7 @@
                 <h5 class="mb-0"><i class="fas fa-user-edit me-2"></i>Actualizar Información Personal</h5>
             </div>
             <div class="card-body">
-                <form action="{{ url_for('main.perfil') }}" method="POST">
+                <form action="{{ url_for('empleado.perfil') }}" method="POST">
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Cédula (No editable)</label>
@@ -51,7 +51,7 @@
                         <button type="submit" class="btn btn-success">
                             <i class="fas fa-save me-2"></i>Guardar Cambios
                         </button>
-                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Cancelar</a>
+                        <a href="{{ url_for('empleado.dashboard') }}" class="btn btn-secondary">Cancelar</a>
                     </div>
                 </form>
             </div>

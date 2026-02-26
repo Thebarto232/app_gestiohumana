@@ -205,50 +205,6 @@ def subir_foto_perfil():
             flash('Archivo no válido.', 'danger')
     return redirect(url_for('main.dashboard'))
 
-
-@main_bp.route('/descargar_nomina_pdf')
-@login_required
-def descargar_nomina_pdf():
-    if HTML is None:
-        flash("Error: Componentes de sistema (GTK) faltantes para PDF.", "danger")
-        return redirect(url_for('main.dashboard'))
-    emp = current_user
-    datos_nomina = _calcular_nomina(emp.Salario_Base)
-    html = render_template('nomina_pdf.html', emp=emp, **datos_nomina)
-    pdf = HTML(string=html).write_pdf()
-    response = make_response(pdf)
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = f'attachment; filename=nomina_{emp.ID_Cedula}.pdf'
-    return response
-
-
-@main_bp.route('/generar_nomina', methods=['POST'])
-@login_required
-def generar_nomina():
-    emp = current_user
-    datos = _calcular_nomina(emp.Salario_Base)
-    hoy = datetime.now().date()
-    mes_nom = hoy.strftime('%B')
-    ano = hoy.year
-    pago = PagoNomina(
-        ID_Cedula=emp.ID_Cedula,
-        Fecha_Pago=hoy,
-        Mes=mes_nom, Ano=ano,
-        Salario_Base=datos['salario'],
-        Aux_Transporte=datos['aux_transporte'],
-        Deducciones_Salud=datos['salud'],
-        Deducciones_Pension=datos['pension'],
-        Total_Devengado=datos['total_devengado'],
-        Total_Deducido=datos['total_deducido'],
-        Neto_Pagar=datos['neto'],
-        Estado='Pagado'
-    )
-    db.session.add(pago)
-    db.session.commit()
-    flash('Pago del mes registrado correctamente.', 'success')
-    return redirect(url_for('main.nomina'))
-
-
 # ---------- ADMIN ----------
 
 @admin_bp.route('/dashboard')

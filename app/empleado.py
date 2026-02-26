@@ -38,7 +38,7 @@ def _normalizar_fecha(fecha):
             return datetime.strptime(fecha, "%Y-%m-%d").date()
         except ValueError:
             return None
-    return fecha
+    return None
 
 @empleado_bp.route('/dashboard')
 @login_required
@@ -207,3 +207,37 @@ def descargar_nomina_pdf():
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'attachment; filename=nomina_{emp.ID_Cedula}.pdf'
     return response
+
+@empleado_bp.route('/generar_nomina', methods=['POST'])
+@login_required
+@role_required("EMPLEADO")
+def generar_nomina():
+    emp = current_user
+    datos = _calcular_nomina(emp.Salario_Base)
+    hoy = datetime.now().date()
+    meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+    mes_nom = meses[hoy.month - 1]
+    ano = hoy.year
+
+    existe = PagoNomina.query.filter_by(ID_Cedula=emp.ID_Cedula, Mes=mes_nom, Ano=ano).first()
+    if existe:
+        flash('La nómina para este mes ya ha sido generada.', 'warning')
+        return redirect(url_for('empleado.nomina'))
+
+    pago = PagoNomina(
+        ID_Cedula=emp.ID_Cedula,
+        Fecha_Pago=hoy,
+        Mes=mes_nom, Ano=ano,
+        Salario_Base=datos['salario'],
+        Aux_Transporte=datos['aux_transporte'],
+        Deducciones_Salud=datos['salud'],
+        Deducciones_Pension=datos['pension'],
+        Total_Devengado=datos['total_devengado'],
+        Total_Deducido=datos['total_deducido'],
+        Neto_Pagar=datos['neto'],
+        Estado='Pagado'
+    )
+    db.session.add(pago)
+    db.session.commit()
+    flash('Pago del mes registrado correctamente.', 'success')
+    return redirect(url_for('empleado.nomina'))

@@ -72,10 +72,10 @@
                 </div>
                 <div class="card-footer bg-light text-end">
                     <button class="btn btn-outline-secondary btn-sm"><i class="fas fa-print me-2"></i>Imprimir</button>
-                    <a href="{{ url_for('main.descargar_nomina_pdf') }}" class="btn btn-primary btn-sm"><i class="fas fa-download me-2"></i>Descargar PDF</a>
+                    <a href="{{ url_for('empleado.descargar_nomina_pdf') }}" class="btn btn-primary btn-sm"><i class="fas fa-download me-2"></i>Descargar PDF</a>
                     
                     <!-- Formulario para generar pago en BD -->
-                    <form action="{{ url_for('main.generar_nomina') }}" method="POST" class="d-inline">
+                    <form action="{{ url_for('empleado.generar_nomina') }}" method="POST" class="d-inline">
                         <button type="submit" class="btn btn-success btn-sm ms-2"><i class="fas fa-save me-2"></i>Generar Pago Mes</button>
                     </form>
                 </div>
