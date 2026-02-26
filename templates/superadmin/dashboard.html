@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="fw-bold mb-4">Panel SuperAdmin</h2>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted">Empleados Activos</h6>
+          <h3 class="fw-bold text-success">{{ stats.activos }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted">Empleados Inactivos</h6>
+          <h3 class="fw-bold text-danger">{{ stats.inactivos }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted">Nómina Total</h6>
+          <h4 class="fw-bold">${{ "%.0f"|format(stats.nomina_total) }}</h4>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted">Nómina Promedio</h6>
+          <h4 class="fw-bold">${{ "%.0f"|format(stats.nomina_promedio) }}</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header fw-bold">Empleados por Área</div>
+        <div class="card-body">
+          <canvas id="empleadosAreaChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header fw-bold">Empleados por Rol</div>
+        <div class="card-body">
+          <canvas id="empleadosRolChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mt-4">
+    <div class="card-header fw-bold">Cambios recientes (roles / salarios / otros)</div>
+    <div class="card-body">
+      <p class="text-muted mb-0">La auditoría detallada se integrará en la siguiente fase.</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const areaLabels = {{ stats.empleados_por_area | map(attribute=0) | list | tojson }};
+  const areaData   = {{ stats.empleados_por_area | map(attribute=1) | list | tojson }};
+
+  new Chart(document.getElementById('empleadosAreaChart'), {
+    type: 'bar',
+    data: {
+      labels: areaLabels,
+      datasets: [{
+        label: 'Empleados',
+        data: areaData,
+        backgroundColor: '#0d6efd'
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  const rolLabels = {{ stats.empleados_por_rol | map(attribute=0) | list | tojson }};
+  const rolData   = {{ stats.empleados_por_rol | map(attribute=1) | list | tojson }};
+
+  new Chart(document.getElementById('empleadosRolChart'), {
+    type: 'pie',
+    data: {
+      labels: rolLabels,
+      datasets: [{
+        data: rolData,
+        backgroundColor: ['#0d6efd','#198754','#ffc107','#dc3545','#6f42c1']
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+</script>
+{% endblock %}
+

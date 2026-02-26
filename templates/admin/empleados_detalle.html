@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+    <div class="mb-4">
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Volver al listado
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body text-center">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="rounded-circle mb-3" width="120">
+                    <h4 class="fw-bold">{{ empleado.Nombre_Completo }}</h4>
+                    <p class="text-muted small">{{ empleado.perfil_rel.Perfil_Ocupacional }}</p>
+                    <span class="badge bg-success">{{ empleado.Estado_Laboral }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <ul class="nav nav-tabs card-header-tabs" id="empTab" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#data">Información</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#pagos">Historial Pagos</button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body tab-content">
+                    <div class="tab-pane fade show active" id="data">
+                        <div class="row g-3">
+                            <div class="col-6"><strong>Cédula:</strong><p>{{ empleado.ID_Cedula }}</p></div>
+                            <div class="col-6"><strong>Ingreso:</strong><p>{{ empleado.Fecha_Ingreso }}</p></div>
+                            <div class="col-6"><strong>Salario Base:</strong><p>${{ "{:,.0f}".format(empleado.Salario_Base|float) }}</p></div>
+                            <div class="col-6"><strong>Email:</strong><p>{{ empleado.Correo_Electronico }}</p></div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="pagos">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr><th>Fecha</th><th>Neto</th><th>Estado</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for p in historial_pagos %}
+                                <tr>
+                                    <td>{{ p.Fecha_Pago }}</td>
+                                    <td>${{ "{:,.0f}".format(p.Neto_Pagar) }}</td>
+                                    <td><span class="badge bg-light text-dark">{{ p.Estado }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

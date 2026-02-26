@@ -1,9 +1,8 @@
 from flask import Blueprint, render_template, abort, request, redirect, url_for, flash, make_response, current_app
 from flask_login import login_required, current_user
-from functools import wraps
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
-from datetime import datetime
+from datetime import datetime, date
 from sqlalchemy import extract, func
 
 from .extensions import db
@@ -11,6 +10,7 @@ from .models import (
     Empleado, Rol, TipoDocumento, PerfilOcupacional,
     Area, Departamento, Eps, FondoPensiones, Hijos, PagoNomina
 )
+from .security.permissions import role_required
 
 try:
     from weasyprint import HTML
@@ -19,15 +19,6 @@ except (ImportError, OSError):
 
 admin_bp = Blueprint('admin', __name__)
 main_bp = Blueprint('main', __name__)
-
-
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.rol_rel or current_user.rol_rel.nombre_rol not in ['ADMIN', 'RRHH']:
-            abort(403)
-        return f(*args, **kwargs)
-    return decorated_function
 
 
 def _calcular_nomina(salario_base):
@@ -44,13 +35,31 @@ def _calcular_nomina(salario_base):
     }
 
 
+def _normalizar_fecha(fecha):
+    """
+    Asegura que trabajamos con objetos date.
+    En la base pueden venir como date o como string 'YYYY-MM-DD'.
+    """
+    if not fecha:
+        return None
+    if isinstance(fecha, date):
+        return fecha
+    if isinstance(fecha, str):
+        try:
+            return datetime.strptime(fecha, "%Y-%m-%d").date()
+        except ValueError:
+            return None
+    return None
+
+
 # ---------- MAIN (empleados) ----------
 
 @main_bp.route('/')
 @main_bp.route('/dashboard')
 @login_required
 def dashboard():
-    if current_user.rol_rel and current_user.rol_rel.nombre_rol in ['ADMIN', 'RRHH']:
+    # SUPERADMIN, ADMIN y RRHH se envían al dashboard administrativo
+    if current_user.rol_rel and current_user.rol_rel.nombre_rol in ['SUPERADMIN', 'ADMIN', 'RRHH']:
         return redirect(url_for('admin.dashboard'))
 
     emp = current_user
@@ -135,7 +144,10 @@ def calendario():
     for emp in todos_activos:
         if emp.Fecha_Nacimiento:
             try:
-                f_cumple = emp.Fecha_Nacimiento.replace(year=ano_actual)
+                fecha_nac = _normalizar_fecha(emp.Fecha_Nacimiento)
+                if not fecha_nac:
+                    raise ValueError
+                f_cumple = fecha_nac.replace(year=ano_actual)
                 eventos.append({
                     'title': f"🎂 {emp.Nombre_Completo}",
                     'start': f_cumple.strftime('%Y-%m-%d'),
@@ -153,7 +165,10 @@ def calendario():
                 pass
         if emp.Fecha_Ingreso:
             try:
-                f_aniv = emp.Fecha_Ingreso.replace(year=ano_actual)
+                fecha_ing = _normalizar_fecha(emp.Fecha_Ingreso)
+                if not fecha_ing:
+                    raise ValueError
+                f_aniv = fecha_ing.replace(year=ano_actual)
                 anos_antiguedad = ano_actual - emp.Fecha_Ingreso.year
                 if anos_antiguedad > 0:
                     eventos.append({
@@ -238,7 +253,7 @@ def generar_nomina():
 
 @admin_bp.route('/dashboard')
 @login_required
-@admin_required
+@role_required("ADMIN", "RRHH")
 def dashboard():
     empleados = Empleado.query.all()
     total_empleados = len(empleados)
@@ -267,7 +282,10 @@ def dashboard():
     ).all()
     aniversarios = []
     for emp in aniversarios_query:
-        anos = ano_actual - emp.Fecha_Ingreso.year
+        fecha_ing = _normalizar_fecha(emp.Fecha_Ingreso)
+        if not fecha_ing:
+            continue
+        anos = ano_actual - fecha_ing.year
         if anos > 0:
             emp.anos_cumplidos = anos
             aniversarios.append(emp)
@@ -277,7 +295,10 @@ def dashboard():
     for emp in todos_activos:
         if emp.Fecha_Nacimiento:
             try:
-                f_cumple = emp.Fecha_Nacimiento.replace(year=ano_actual)
+                fecha_nac = _normalizar_fecha(emp.Fecha_Nacimiento)
+                if not fecha_nac:
+                    raise ValueError
+                f_cumple = fecha_nac.replace(year=ano_actual)
                 eventos.append({
                     'title': f"🎂 {emp.Nombre_Completo}",
                     'start': f_cumple.strftime('%Y-%m-%d'),
@@ -287,8 +308,11 @@ def dashboard():
                 pass
         if emp.Fecha_Ingreso:
             try:
-                f_aniv = emp.Fecha_Ingreso.replace(year=ano_actual)
-                anos_antiguedad = ano_actual - emp.Fecha_Ingreso.year
+                fecha_ing = _normalizar_fecha(emp.Fecha_Ingreso)
+                if not fecha_ing:
+                    raise ValueError
+                f_aniv = fecha_ing.replace(year=ano_actual)
+                anos_antiguedad = ano_actual - fecha_ing.year
                 if anos_antiguedad > 0:
                     eventos.append({
                         'title': f"🎖️ {anos_antiguedad} Años - {emp.Nombre_Completo}",
@@ -308,7 +332,7 @@ def dashboard():
 
 @admin_bp.route('/cargos')
 @login_required
-@admin_required
+@role_required("ADMIN", "RRHH")
 def gestionar_cargos():
     cargos_con_conteo = db.session.query(
         PerfilOcupacional, func.count(Empleado.ID_Cedula)
@@ -320,7 +344,7 @@ def gestionar_cargos():
 
 @admin_bp.route('/areas')
 @login_required
-@admin_required
+@role_required("ADMIN", "RRHH")
 def gestionar_areas():
     areas = Area.query.order_by(Area.Area).all()
     departamentos = Departamento.query.all()
@@ -329,7 +353,7 @@ def gestionar_areas():
 
 @admin_bp.route('/area/crear', methods=['POST'])
 @login_required
-@admin_required
+@role_required("ADMIN", "RRHH")
 def crear_area():
     try:
         nombre_area = request.form.get('area')
@@ -352,14 +376,14 @@ def crear_area():
 
 @admin_bp.route('/eventos')
 @login_required
-@admin_required
+@role_required("ADMIN", "RRHH")
 def gestionar_eventos():
     return render_template('admin/eventos.html')
 
 
 @admin_bp.route('/empleado/editar', methods=['POST'])
 @login_required
-@admin_required
+@role_required("ADMIN", "RRHH")
 def editar_empleado():
     try:
         cedula = request.form.get('cedula')
@@ -382,9 +406,38 @@ def editar_empleado():
     return redirect(url_for('admin.dashboard'))
 
 
+
+@admin_bp.route("/empleado/<cedula>")
+@login_required
+@role_required("ADMIN", "RRHH")
+def empleado_detalle(cedula):
+    # Buscamos al empleado por su Cédula (tu Primary Key)
+    emp = db.session.get(Empleado, cedula)
+    if not emp:
+        flash('Empleado no encontrado.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+    
+    # Obtenemos los últimos 6 meses de pagos reales de la tabla PagoNomina
+    historial_pagos = (
+        PagoNomina.query.filter_by(ID_Cedula=cedula)
+        .order_by(PagoNomina.Fecha_Pago.desc())
+        .limit(6)
+        .all()
+    )
+    
+    # Calculamos la proyección de la nómina actual usando tu función existente
+    datos_actuales = _calcular_nomina(emp.Salario_Base)
+    
+    return render_template(
+        "admin/empleados_detalle.html", # Asegúrate de que el nombre coincida con tu carpeta templates/admin/
+        empleado=emp,
+        historial_pagos=historial_pagos,
+        datos_actuales=datos_actuales
+    )
+
 @admin_bp.route('/cargo/crear', methods=['POST'])
 @login_required
-@admin_required
+@role_required("ADMIN", "RRHH")
 def crear_cargo():
     try:
         id_perfil = request.form.get('id_perfil')
@@ -408,7 +461,7 @@ def crear_cargo():
 
 @admin_bp.route('/empleado/crear', methods=['POST'])
 @login_required
-@admin_required
+@role_required("ADMIN", "RRHH")
 def crear_empleado():
     try:
         cedula = request.form.get('cedula')
@@ -441,7 +494,7 @@ def crear_empleado():
 
 @admin_bp.route('/reporte/empleados_activos_pdf')
 @login_required
-@admin_required
+@role_required("ADMIN", "RRHH")
 def generar_reporte_activos():
     if HTML is None:
         flash("Error: WeasyPrint no disponible. Revise la instalación de GTK.", "danger")

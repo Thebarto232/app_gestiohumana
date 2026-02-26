@@ -24,8 +24,16 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 {% if current_user.is_authenticated %}
                 <ul class="navbar-nav me-auto">
-                    {% if current_user.rol_rel and current_user.rol_rel.nombre_rol in ['ADMIN', 'RRHH'] %}
-                        <!-- MENÚ ADMINISTRADOR -->
+                    {% if current_user.rol_rel and current_user.rol_rel.nombre_rol == 'SUPERADMIN' %}
+                        <!-- MENÚ SUPERADMIN -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('superadmin.dashboard') }}"><i class="fas fa-crown me-1"></i> SuperAdmin</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i> Dashboard Admin</a>
+                        </li>
+                    {% elif current_user.rol_rel and current_user.rol_rel.nombre_rol in ['ADMIN', 'RRHH'] %}
+                        <!-- MENÚ ADMINISTRADOR / RRHH -->
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i> Dashboard Admin</a>
                         </li>

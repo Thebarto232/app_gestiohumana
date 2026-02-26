@@ -54,8 +54,11 @@ def create_app():
     with app.app_context():
         from .auth import auth_bp
         from .routes import admin_bp, main_bp
+        from .superadmin import superadmin_bp
+
         app.register_blueprint(auth_bp)
-        app.register_blueprint(admin_bp, url_prefix='/admin')
+        app.register_blueprint(superadmin_bp)
+        app.register_blueprint(admin_bp, url_prefix="/admin")
         app.register_blueprint(main_bp)
 
     return app
